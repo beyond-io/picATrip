@@ -42,7 +42,7 @@ def post_list(user_list, place_choices):
 
     return [
         Post(
-            nameOfPoster=user_list[i],
+            user=user_list[i],
             nameOfLocation=place_choices[i],
             photoURL=f'www.test_{i + 1}.com',
             Description=f'This is my #{i + 1} favorite place! chill vibes and beautiful view.',
