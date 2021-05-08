@@ -2,6 +2,7 @@ from Post.models import Post
 from .forms import CreatePostForm
 from django.db.models.query import QuerySet
 from commenting_system.models import Comment
+from django.contrib.auth.models import User
 import pytest
 
 
@@ -13,12 +14,10 @@ def test_post_str(post):
 
 @pytest.mark.django_db
 def test_post_form(form):
-
-    post = form.save()
+    post = form.save(commit=False)
 
     # check if the values from the form saved properly (into a the post).
     assert form.is_valid()
-    assert post.nameOfPoster == 'Daniel'
     assert post.nameOfLocation == 'Israel'
     assert post.photoURL == 'www.test.com'
     assert post.Description == 'cool place'
@@ -51,7 +50,7 @@ def test_all_posts():
     assert all(post is not None for post in posts)
     assert all(len(post.Description) > 0 for post in posts)
     assert all(len(post.nameOfLocation) > 0 for post in posts)
-    assert all(len(post.nameOfPoster) > 0 for post in posts)
+    assert all(isinstance(post.user, User) for post in posts)
     assert all(len(post.photoURL) > 0 for post in posts)
 
 
@@ -66,9 +65,12 @@ def test_post_comments():
 
 @pytest.fixture
 def post():
+    new_user = User.objects.create_user(
+        username='Shov', email='Test10@gmail.com', password='password777'
+    )
 
     return Post(
-        nameOfPoster='Shoval',
+        user=new_user,
         nameOfLocation='The Dead Sea',
         photoURL='www.testPost.com',
         Description='beautiful place',
@@ -77,14 +79,13 @@ def post():
 
 @pytest.fixture
 def form():
-    author = 'Daniel'
+
     location = 'Israel'
     photoURL = 'www.test.com'
     description = 'cool place'
 
     return CreatePostForm(
         data={
-            'nameOfPoster': author,
             'nameOfLocation': location,
             'photoURL': photoURL,
             'Description': description,
